@@ -19,6 +19,7 @@ A RESTful backend API built with Node.js, Express, TypeScript, and Supabase Post
    pnpm install
    ```
 2. Copy `.env.example` to `.env` and fill in your private Supabase Session pooler `DATABASE_URL`.
+   Set `DATABASE_SSL_ROOT_CERT` to the path of your downloaded Supabase root certificate.
 3. Run in development mode:
    ```bash
    pnpm dev
@@ -28,3 +29,7 @@ A RESTful backend API built with Node.js, Express, TypeScript, and Supabase Post
    pnpm build
    pnpm start
    ```
+
+## Render Deployment
+
+In the Render service's Environment settings, add `DATABASE_URL` using the Supabase Session pooler connection string and `DATABASE_SSL_ROOT_CERT` using the full contents of the Supabase root certificate PEM file. Do not use a local file path for the certificate on Render. The application verifies the certificate and server hostname.

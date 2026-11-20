@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Pool } from 'pg';
+import { Pool, type PoolConfig } from 'pg';
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -17,9 +17,19 @@ if (
   connectionUrl.searchParams.set('sslmode', 'verify-full');
 }
 
-const sslRootCertPath = process.env.DATABASE_SSL_ROOT_CERT;
-if (sslRootCertPath) {
-  connectionUrl.searchParams.set('sslrootcert', sslRootCertPath);
+const sslRootCert = process.env.DATABASE_SSL_ROOT_CERT?.trim();
+const poolOptions: PoolConfig = {
+  connectionString: connectionUrl.toString()
+};
+
+if (sslRootCert?.startsWith('-----BEGIN CERTIFICATE-----')) {
+  connectionUrl.searchParams.delete('sslmode');
+  connectionUrl.searchParams.delete('sslrootcert');
+  poolOptions.connectionString = connectionUrl.toString();
+  poolOptions.ssl = { ca: sslRootCert, rejectUnauthorized: true };
+} else if (sslRootCert) {
+  connectionUrl.searchParams.set('sslrootcert', sslRootCert);
+  poolOptions.connectionString = connectionUrl.toString();
 }
 
-export const pool = new Pool({ connectionString: connectionUrl.toString() });
+export const pool = new Pool(poolOptions);
