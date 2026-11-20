@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
 import { pool } from '../db';
 
+function parseStudentId(idText: string | string[] | undefined): number | null {
+  if (typeof idText !== 'string' || !/^\d+$/.test(idText)) {
+    return null;
+  }
+
+  const id = Number(idText);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
 // GET /students — return all students
 export async function getStudents(_req: Request, res: Response): Promise<void> {
   try {
@@ -15,8 +24,8 @@ export async function getStudents(_req: Request, res: Response): Promise<void> {
 
 // GET /students/:id — return one student or 404
 export async function getStudentById(req: Request, res: Response): Promise<void> {
-  const id = Number(req.params.id);
-  if (!Number.isSafeInteger(id) || id < 1) {
+  const id = parseStudentId(req.params.id);
+  if (id === null) {
     res.status(400).json({ message: 'Student ID must be a positive integer' });
     return;
   }
@@ -124,9 +133,8 @@ export async function createStudent(req: Request, res: Response): Promise<void> 
 
 export async function updateStudent(req: Request, res: Response): Promise<void> {
   // The route parameter is text; accept only a positive, safe whole-number ID.
-  const idText = req.params.id;
-  const id = Number(idText);
-  if (!/^\d+$/.test(idText) || !Number.isSafeInteger(id) || id < 1) {
+  const id = parseStudentId(req.params.id);
+  if (id === null) {
     res.status(400).json({ message: 'Student ID must be a positive integer' });
     return;
   }
@@ -193,11 +201,10 @@ export async function updateStudent(req: Request, res: Response): Promise<void> 
 
 export async function deleteStudent(req: Request, res: Response): Promise<void> {
   // Read the ID after /students/ in the request URL.
-  const idText = req.params.id;
-  const id = Number(idText);
- 
+
   // Stop if the ID is not a positive, safe whole number.
-  if (!/^\d+$/.test(idText) || !Number.isSafeInteger(id) || id < 1) {
+  const id = parseStudentId(req.params.id);
+  if (id === null) {
     res.status(400).json({ message: 'Student ID must be a positive integer' });
     return;
   }
